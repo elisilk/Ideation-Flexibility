@@ -20,3 +20,37 @@ model3 <- lm(Shift ~ AverageN + ContextN + Framing, data=df3)
 summary(model3)
 model4 <- lm(Shift ~ AverageN + ContextN + Framing, data=df4)
 summary(model4)
+
+
+
+## Reorganizing the data frames so that each row of the data frame corresponds to an ideation session.
+## In this organization, each participant will have multiple sessions (Neutral + Framed).
+## This allows us to do a regression that predicts the Average PR score for a session as a function
+## of the Context + Framing. Framing can be either Neutral, Incremental, or Radical, and so we can
+## use the Neutral as the baseline and then compare Incremental to Neutral and Radical to Neutral.
+
+# names(yr4) # Exploring the data frame
+
+# Selecting out only the rows of interest for each ideation session
+yr4.neutral <- yr4[,1:20]
+yr4.neutral$Framing <- "Neutral"
+yr4.framed <- yr4[,c(1:2,21,23:39,22)]
+
+# Renaming the columns to the column names are consistent for both ideation session data frames
+colnames(yr4.neutral) <- c("Year","ParticipantID", "Context", paste("Idea",1:16,sep=""), "Average", "Framing")
+colnames(yr4.framed) <- c("Year","ParticipantID", "Context", paste("Idea",1:16,sep=""), "Average", "Framing")
+
+# colnames(yr4.neutral) # Verifying the column names
+# colnames(yr4.framed) # Verifying the column names
+
+# Combining the neutral and framed sessions into one larger, reorganized data frame
+yr4.reorg <- rbind(yr4.neutral, yr4.framed)
+
+# Convert the Framing column to a factor with "Neutral" as the baseline
+yr4.reorg$Framing <- factor(yr4.reorg$Framing, levels=c("Neutral","Incremental","Radical"))
+
+# summary(yr4.reorg) # Verifying the reorganized data frame
+
+# A new regression model predicting the Average PR score of the session as function of the problem Context and the Framing
+model4 <- lm(Average ~ Context + Framing, data=yr4.reorg)
+summary(model4)
